@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>臨床兒科藥物實戰測驗</title>
+    <style>
+        :root { --primary: #0284c7; --success: #10b981; --warning: #f59e0b; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: system-ui; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: var(--text); padding: 20px 0; }
+        .card { background: white; padding: 2rem; border-radius: 1rem; width: 90%; max-width: 650px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .hidden { display: none !important; }
+        
+        .form-group { text-align: left; margin-bottom: 1.2rem; }
+        .form-group > label { display: block; margin-bottom: 0.5rem; font-weight: bold; font-size: 0.95rem; }
+        input[type="text"], input[type="number"], select { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 1rem; }
+        .other-input { margin-top: 8px; background-color: #f8fafc; }
+        
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 8px; }
+        .checkbox-group label { font-weight: normal; font-size: 1rem; display: flex; align-items: center; cursor: pointer; margin-bottom: 0; }
+        .checkbox-group input[type="checkbox"] { margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
+
+        .btn { background: var(--primary); color: white; border: none; padding: 14px 24px; border-radius: 0.5rem; cursor: pointer; font-size: 1.1rem; width: 100%; margin-top: 15px; font-weight: bold; transition: 0.2s; }
+        .btn:hover { background: #0369a1; }
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: #059669; }
+        
+        .option-group { display: grid; gap: 12px; margin-top: 20px; }
+        .option-btn { padding: 16px; border: 2px solid #e2e8f0; border-radius: 0.5rem; background: white; cursor: pointer; transition: 0.2s; text-align: left; font-size: 1rem; }
+        .option-btn:hover { border-color: var(--primary); background: #f0f9ff; }
+        
+        #question-text { text-align: left; line-height: 1.6; font-size: 1.1rem; background: #f1f5f9; padding: 18px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--primary); }
+        
+        .step-indicator { font-size: 0.9rem; color: #64748b; font-weight: bold; letter-spacing: 1px; margin-bottom: 1rem; text-transform: uppercase; }
+        .alert-box { background: #fffbeb; color: #b45309; padding: 12px; border-radius: 8px; border: 1px solid #fde68a; margin-bottom: 20px; font-weight: bold; }
+        .tool-box { background: #f0fdf4; border: 2px dashed var(--success); padding: 20px; border-radius: 12px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <!-- Step 1: 基本資料 -->
+    <div id="login-screen">
+        <div class="step-indicator">Step 1 / 4：基本資料</div>
+        <h2 id="quiz-title">測驗載入中...</h2>
+        <div id="loading" style="color: var(--primary); font-weight: bold;">正在連線至雲端資料庫...</div>
+        
+        <div id="login-form" class="hidden">
+            <div class="alert-box">💡 測驗提示：本次測驗分為「前測」與「後測」，請先模擬您目前的真實工作場域進行前測！</div>
+            
+            <div class="form-group">
+                <label>姓名 / 暱稱：</label>
+                <input type="text" id="u-name" placeholder="請輸入姓名或暱稱">
+            </div>
+            <div class="form-group">
+                <label>職業：</label>
+                <input type="text" id="u-job" placeholder="例如：醫師、藥師、護理師">
+            </div>
+            <div class="form-group">
+                <label>執業多久 (年)：</label>
+                <input type="number" id="u-years" placeholder="例如：3" min="0">
+            </div>
+            <div class="form-group">
+                <label>目前執業場所：</label>
+                <select id="u-workplace" onchange="toggleSelectOther('u-workplace', 'u-workplace-other')">
+                    <option value="">請選擇...</option>
+                    <option value="醫院">醫院</option>
+                    <option value="診所">診所</option>
+                    <option value="藥局">藥局</option>
+                    <option value="其他">其他</option>
+                </select>
+                <input type="text" id="u-workplace-other" class="hidden other-input" placeholder="請註明您的執業場所">
+            </div>
+            <div class="form-group">
+                <label>遇到不確定的劑量，最常參考的資料 (可複選)：</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="u-ref" value="Uptodate"> Uptodate</label>
+                    <label><input type="checkbox" name="u-ref" value="Micromedex"> Micromedex</label>
+                    <label><input type="checkbox" name="u-ref" value="仿單"> 仿單</label>
+                    <label><input type="checkbox" name="u-ref" value="乖乖手冊"> 乖乖手冊</label>
+                    <label><input type="checkbox" name="u-ref" value="其他" id="cb-other-ref" onchange="toggleCheckboxOther('cb-other-ref', 'u-ref-other')"> 其他</label>
+                </div>
+                <input type="text" id="u-ref-other" class="hidden other-input" placeholder="請註明您參考的資料">
+            </div>
+            <button class="btn" onclick="startTestPhase('前測')">開始前測</button>
+        </div>
+    </div>
+
+    <!-- Step 2 & 4: 測驗畫面 (共用) -->
+    <div id="quiz-screen" class="hidden">
+        <div class="step-indicator" id="progress">測驗進度</div>
+        <div style="font-size: 0.9rem; color: #ef4444; margin-bottom: 1rem; font-weight: bold;">當前題目耗時: <span id="current-timer">0.0</span> 秒</div>
+        <div id="question-text">載入題目中...</div>
+        <div id="options-container" class="option-group"></div>
+    </div>
+
+    <!-- Step 3: 中場派發工具 -->
+    <div id="tool-screen" class="hidden">
+        <div class="step-indicator">Step 3 / 4：工具輔助</div>
+        <h2 style="color: var(--primary);">前測完成！</h2>
+        
+        <div class="tool-box">
+            <h3 style="margin-top: 0; color: var(--success);">兒科藥品劑量計算器</h3>
+            <p style="font-size: 0.95rem;">接下來請使用此計算器來作答相同的題目！</p>
+            <!-- 👇 在這裡換成你的工具網址 👇 -->
+            <a href="https://yunkkstudy.github.io/SmartPaeds/" target="_blank" class="btn btn-success" style="text-decoration: none; display: inline-block; width: auto; padding: 12px 30px;">點此開啟計算器</a>
+        </div>
+        
+        <button class="btn" onclick="startTestPhase('後測')" style="margin-top: 10px;">我已開啟計算器，開始後測</button>
+    </div>
+
+    <!-- Step 5: 結算 -->
+    <div id="result-screen" class="hidden">
+        <div class="step-indicator">Step 4 / 4：完美結束！</div>
+        <h2 style="color: var(--success);">🎉 測驗全數完成！</h2>
+        <p>感謝您參與本次研究</p>
+        <p style="color: #64748b; font-size: 0.9rem; margin-top: 20px;">您可以關閉此視窗，並將計算器保留於臨床實務中使用。</p>
+    </div>
+</div>
+
+<script>
+    // ---------------------------------------------------------
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbw11yBkJl1LSiTUIFICdKC2SLHmliBrFnZAICWTwW0urZ_Zvzqqm10VBtnLx0BPTQ/exec"; 
+    // ---------------------------------------------------------
+
+    let questions = [];
+    let currentIdx = 0;
+    let records = [];
+    let userInfo = {};
+    let currentPhase = '前測'; // 追蹤當前是前測還是後測
+    let questionStartTime = 0;
+    let timerInterval;
+
+    window.onload = async () => {
+        try {
+            const response = await fetch(`${GAS_URL}?action=getQuestions`);
+            const data = await response.json();
+            questions = data.questions;
+            document.getElementById('quiz-title').textContent = data.title;
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        } catch (e) {
+            document.getElementById('loading').textContent = "連線失敗，請檢查網路狀態。";
+        }
+    };
+
+    function toggleSelectOther(selectId, inputId) {
+        const sel = document.getElementById(selectId);
+        const inp = document.getElementById(inputId);
+        if (sel.value === '其他') { inp.classList.remove('hidden'); inp.focus(); } 
+        else { inp.classList.add('hidden'); inp.value = ''; }
+    }
+
+    function toggleCheckboxOther(checkboxId, inputId) {
+        const cb = document.getElementById(checkboxId);
+        const inp = document.getElementById(inputId);
+        if (cb.checked) { inp.classList.remove('hidden'); inp.focus(); } 
+        else { inp.classList.add('hidden'); inp.value = ''; }
+    }
+
+    function startTestPhase(phase) {
+        if (phase === '前測') {
+            // 基本資料防呆驗證
+            let workplaceVal = document.getElementById('u-workplace').value;
+            if (workplaceVal === '其他') workplaceVal = document.getElementById('u-workplace-other').value.trim();
+
+            let refCheckedBoxes = document.querySelectorAll('input[name="u-ref"]:checked');
+            let refArray = [];
+            let isOtherRefChecked = false;
+            let otherRefText = document.getElementById('u-ref-other').value.trim();
+
+            refCheckedBoxes.forEach(cb => {
+                if (cb.value === '其他') {
+                    isOtherRefChecked = true;
+                    if (otherRefText !== "") refArray.push(otherRefText);
+                } else {
+                    refArray.push(cb.value);
+                }
+            });
+
+            let uName = document.getElementById('u-name').value.trim();
+            let uJob = document.getElementById('u-job').value.trim();
+            let uYears = document.getElementById('u-years').value.trim();
+
+            if (!uName || !uJob || !uYears || !workplaceVal || refArray.length === 0 || (isOtherRefChecked && !otherRefText)) {
+                return alert("請完整填寫基本資料喔！\n（若選擇「其他」，請記得填寫具體內容，且參考資料至少需勾選一項）");
+            }
+
+            userInfo = { name: uName, job: uJob, years: uYears, workplace: workplaceVal, ref: refArray.join(', ') };
+            document.getElementById('login-screen').classList.add('hidden');
+        } else if (phase === '後測') {
+            document.getElementById('tool-screen').classList.add('hidden');
+        }
+
+        // 初始化測驗參數
+        currentPhase = phase;
+        currentIdx = 0;
+        records = []; // 清空之前的紀錄，重新計算
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        showQuestion();
+    }
+
+    function showQuestion() {
+        // 若題目已答完
+        if (currentIdx >= questions.length) {
+            finishTestPhase();
+            return;
+        }
+
+        const stepNum = currentPhase === '前測' ? 'Step 2' : 'Step 4';
+        document.getElementById('progress').textContent = `${stepNum} / 4：${currentPhase} (${currentIdx + 1} / ${questions.length})`;
+        
+        const q = questions[currentIdx];
+        document.getElementById('question-text').textContent = q.text;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+
+        const options = q.type === 'tf' ? ['合理', '不合理'] : q.options;
+        options.forEach((opt, idx) => {
+            if (!opt && q.type === 'mc') return;
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt;
+            btn.onclick = () => handleAnswer(idx, opt);
+            container.appendChild(btn);
+        });
+
+        questionStartTime = Date.now();
+        startTimer();
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            const sec = ((Date.now() - questionStartTime) / 1000).toFixed(1);
+            document.getElementById('current-timer').textContent = sec;
+        }, 100);
+    }
+
+    function handleAnswer(userAnswerIndex, displayValue) {
+        clearInterval(timerInterval);
+        const timeSpent = ((Date.now() - questionStartTime) / 1000).toFixed(2);
+        
+        records.push({
+            id: questions[currentIdx].id,
+            questionText: questions[currentIdx].text,
+            type: questions[currentIdx].type,
+            userAnswer: userAnswerIndex,
+            answerDisplay: displayValue,
+            time: parseFloat(timeSpent)
+        });
+
+        currentIdx++;
+        showQuestion();
+    }
+
+    async function finishTestPhase() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        
+        // 準備上傳資料
+        const payload = {
+            action: 'saveResponse',
+            userInfo: userInfo,
+            phase: currentPhase,  // 標記這是前測還是後測
+            records: records,
+            ts: Date.now()
+        };
+
+        // 背景非同步上傳 (不卡住使用者)
+        fetch(GAS_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify(payload)
+        }).catch(e => console.error("上傳失敗", e));
+
+        // 根據不同階段跳轉畫面
+        if (currentPhase === '前測') {
+            document.getElementById('tool-screen').classList.remove('hidden');
+        } else {
+            document.getElementById('result-screen').classList.remove('hidden');
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -7,7 +7,8 @@
     <style>
         :root { --primary: #0284c7; --success: #10b981; --warning: #f59e0b; --bg: #f8fafc; --text: #1e293b; }
         body { font-family: system-ui; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: var(--text); padding: 20px 0; }
-        .card { background: white; padding: 2rem; border-radius: 1rem; width: 90%; max-width: 650px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        /* 卡片加寬一點點以容納報表 */
+        .card { background: white; padding: 2rem; border-radius: 1rem; width: 90%; max-width: 750px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
         .hidden { display: none !important; }
         
         .form-group { text-align: left; margin-bottom: 1.2rem; }
@@ -33,6 +34,16 @@
         .step-indicator { font-size: 0.9rem; color: #64748b; font-weight: bold; letter-spacing: 1px; margin-bottom: 1rem; text-transform: uppercase; }
         .alert-box { background: #fffbeb; color: #b45309; padding: 12px; border-radius: 8px; border: 1px solid #fde68a; margin-bottom: 20px; font-weight: bold; }
         .tool-box { background: #f0fdf4; border: 2px dashed var(--success); padding: 20px; border-radius: 12px; margin: 20px 0; }
+
+        /* 報表專屬 CSS */
+        .summary-stats { display: flex; justify-content: space-around; margin: 20px 0; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .stat-box h4 { margin: 0 0 5px 0; color: #64748b; font-size: 0.95rem;}
+        .stat-box span { font-size: 1.3rem; font-weight: bold; color: var(--primary); }
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95rem; }
+        .result-table th, .result-table td { border: 1px solid #cbd5e1; padding: 10px; text-align: center; }
+        .result-table th { background-color: #f1f5f9; font-weight: bold; color: #334155; }
+        .correct { color: var(--success); font-weight: bold; }
+        .wrong { color: #ef4444; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -47,26 +58,13 @@
         <div id="login-form" class="hidden">
             <div class="alert-box">💡 測驗提示：本次測驗分為「前測」與「後測」，請先模擬您目前的真實工作場域進行前測！</div>
             
-            <div class="form-group">
-                <label>姓名 / 暱稱：</label>
-                <input type="text" id="u-name" placeholder="請輸入姓名或暱稱">
-            </div>
-            <div class="form-group">
-                <label>職業：</label>
-                <input type="text" id="u-job" placeholder="例如：醫師、藥師、護理師">
-            </div>
-            <div class="form-group">
-                <label>執業多久 (年)：</label>
-                <input type="number" id="u-years" placeholder="例如：3" min="0">
-            </div>
+            <div class="form-group"><label>姓名 / 暱稱：</label><input type="text" id="u-name" placeholder="請輸入姓名或暱稱"></div>
+            <div class="form-group"><label>職業：</label><input type="text" id="u-job" placeholder="例如：醫師、藥師、護理師"></div>
+            <div class="form-group"><label>執業多久 (年)：</label><input type="number" id="u-years" placeholder="例如：3" min="0"></div>
             <div class="form-group">
                 <label>目前執業場所：</label>
                 <select id="u-workplace" onchange="toggleSelectOther('u-workplace', 'u-workplace-other')">
-                    <option value="">請選擇...</option>
-                    <option value="醫院">醫院</option>
-                    <option value="診所">診所</option>
-                    <option value="藥局">藥局</option>
-                    <option value="其他">其他</option>
+                    <option value="">請選擇...</option><option value="醫院">醫院</option><option value="診所">診所</option><option value="藥局">藥局</option><option value="其他">其他</option>
                 </select>
                 <input type="text" id="u-workplace-other" class="hidden other-input" placeholder="請註明您的執業場所">
             </div>
@@ -85,7 +83,7 @@
         </div>
     </div>
 
-    <!-- Step 2 & 4: 測驗畫面 (共用) -->
+    <!-- Step 2 & 4: 測驗畫面 -->
     <div id="quiz-screen" class="hidden">
         <div class="step-indicator" id="progress">測驗進度</div>
         <div style="font-size: 0.9rem; color: #ef4444; margin-bottom: 1rem; font-weight: bold;">當前題目耗時: <span id="current-timer">0.0</span> 秒</div>
@@ -101,32 +99,36 @@
         <div class="tool-box">
             <h3 style="margin-top: 0; color: var(--success);">兒科藥品劑量計算器</h3>
             <p style="font-size: 0.95rem;">接下來請使用此計算器來作答相同的題目！</p>
-            <!-- 👇 在這裡換成你的工具網址 👇 -->
             <a href="https://yunkkstudy.github.io/SmartPaeds/" target="_blank" class="btn btn-success" style="text-decoration: none; display: inline-block; width: auto; padding: 12px 30px;">點此開啟計算器</a>
         </div>
         
         <button class="btn" onclick="startTestPhase('後測')" style="margin-top: 10px;">我已開啟計算器，開始後測</button>
     </div>
 
-    <!-- Step 5: 結算 -->
+    <!-- Step 5: 結算報表 -->
     <div id="result-screen" class="hidden">
         <div class="step-indicator">Step 4 / 4：完美結束！</div>
-        <h2 style="color: var(--success);">🎉 測驗全數完成！</h2>
-        <p>感謝您參與本次研究</p>
-        <p style="color: #64748b; font-size: 0.9rem; margin-top: 20px;">您可以關閉此視窗，並將計算器保留於臨床實務中使用。</p>
+        <h2 style="color: var(--success);">🎉 實戰表現報告</h2>
+        <p style="color: #64748b; margin-bottom: 20px;">感謝您參與本次測驗，以下是您使用計算器前後的具體差異：</p>
+        
+        <!-- 動態生成的報表區塊 -->
+        <div id="report-container"></div>
+        
     </div>
 </div>
 
 <script>
     // ---------------------------------------------------------
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbw11yBkJl1LSiTUIFICdKC2SLHmliBrFnZAICWTwW0urZ_Zvzqqm10VBtnLx0BPTQ/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyimURTxSPBzml-wThFih6ljlBtoAxAjh3ygYBqti24XbkHx8rGFRMeQ1qJ6nIJnA/exec"; 
     // ---------------------------------------------------------
 
     let questions = [];
-    let currentIdx = 0;
+    let preTestRecords = [];  // 儲存前測紀錄
+    let postTestRecords = []; // 儲存後測紀錄
     let records = [];
     let userInfo = {};
-    let currentPhase = '前測'; // 追蹤當前是前測還是後測
+    let currentPhase = '前測';
+    let currentIdx = 0;
     let questionStartTime = 0;
     let timerInterval;
 
@@ -146,20 +148,17 @@
     function toggleSelectOther(selectId, inputId) {
         const sel = document.getElementById(selectId);
         const inp = document.getElementById(inputId);
-        if (sel.value === '其他') { inp.classList.remove('hidden'); inp.focus(); } 
-        else { inp.classList.add('hidden'); inp.value = ''; }
+        if (sel.value === '其他') { inp.classList.remove('hidden'); inp.focus(); } else { inp.classList.add('hidden'); inp.value = ''; }
     }
 
     function toggleCheckboxOther(checkboxId, inputId) {
         const cb = document.getElementById(checkboxId);
         const inp = document.getElementById(inputId);
-        if (cb.checked) { inp.classList.remove('hidden'); inp.focus(); } 
-        else { inp.classList.add('hidden'); inp.value = ''; }
+        if (cb.checked) { inp.classList.remove('hidden'); inp.focus(); } else { inp.classList.add('hidden'); inp.value = ''; }
     }
 
     function startTestPhase(phase) {
         if (phase === '前測') {
-            // 基本資料防呆驗證
             let workplaceVal = document.getElementById('u-workplace').value;
             if (workplaceVal === '其他') workplaceVal = document.getElementById('u-workplace-other').value.trim();
 
@@ -172,9 +171,7 @@
                 if (cb.value === '其他') {
                     isOtherRefChecked = true;
                     if (otherRefText !== "") refArray.push(otherRefText);
-                } else {
-                    refArray.push(cb.value);
-                }
+                } else { refArray.push(cb.value); }
             });
 
             let uName = document.getElementById('u-name').value.trim();
@@ -191,20 +188,15 @@
             document.getElementById('tool-screen').classList.add('hidden');
         }
 
-        // 初始化測驗參數
         currentPhase = phase;
         currentIdx = 0;
-        records = []; // 清空之前的紀錄，重新計算
+        records = []; 
         document.getElementById('quiz-screen').classList.remove('hidden');
         showQuestion();
     }
 
     function showQuestion() {
-        // 若題目已答完
-        if (currentIdx >= questions.length) {
-            finishTestPhase();
-            return;
-        }
+        if (currentIdx >= questions.length) { finishTestPhase(); return; }
 
         const stepNum = currentPhase === '前測' ? 'Step 2' : 'Step 4';
         document.getElementById('progress').textContent = `${stepNum} / 4：${currentPhase} (${currentIdx + 1} / ${questions.length})`;
@@ -243,11 +235,10 @@
         
         records.push({
             id: questions[currentIdx].id,
-            questionText: questions[currentIdx].text,
-            type: questions[currentIdx].type,
             userAnswer: userAnswerIndex,
-            answerDisplay: displayValue,
-            time: parseFloat(timeSpent)
+            time: parseFloat(timeSpent),
+            // 保留給背景上傳的資訊
+            questionText: questions[currentIdx].text, type: questions[currentIdx].type, answerDisplay: displayValue 
         });
 
         currentIdx++;
@@ -257,27 +248,105 @@
     async function finishTestPhase() {
         document.getElementById('quiz-screen').classList.add('hidden');
         
-        // 準備上傳資料
-        const payload = {
-            action: 'saveResponse',
-            userInfo: userInfo,
-            phase: currentPhase,  // 標記這是前測還是後測
-            records: records,
-            ts: Date.now()
-        };
+        // 背景上傳成績給 Google Sheet
+        const payload = { action: 'saveResponse', userInfo: userInfo, phase: currentPhase, records: records, ts: Date.now() };
+        fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }).catch(e => console.error(e));
 
-        // 背景非同步上傳 (不卡住使用者)
-        fetch(GAS_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(payload)
-        }).catch(e => console.error("上傳失敗", e));
-
-        // 根據不同階段跳轉畫面
         if (currentPhase === '前測') {
+            preTestRecords = [...records]; // 備份前測資料
             document.getElementById('tool-screen').classList.remove('hidden');
         } else {
+            postTestRecords = [...records]; // 備份後測資料
             document.getElementById('result-screen').classList.remove('hidden');
+            generateReport(); // 啟動報表生成
+        }
+    }
+
+    // 🌟 新增：產生最終對比報表
+    async function generateReport() {
+        const reportContainer = document.getElementById('report-container');
+        reportContainer.innerHTML = '<h3 style="color:var(--primary);">正在比對大腦與系統的算力差異...</h3>';
+
+        try {
+            // 向 GAS 索取正確答案對照表
+            const res = await fetch(`${GAS_URL}?action=getAnswers`);
+            const data = await res.json();
+            const answersMap = data.answers;
+
+            let preCorrectCount = 0, postCorrectCount = 0;
+            let preTotalTime = 0, postTotalTime = 0;
+
+            let tableHTML = `
+            <div style="overflow-x: auto;">
+                <table class="result-table">
+                    <thead>
+                        <tr>
+                            <th>題號</th>
+                            <th>前測結果</th>
+                            <th>前測耗時</th>
+                            <th>後測結果</th>
+                            <th>後測耗時</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            for (let i = 0; i < questions.length; i++) {
+                const qId = questions[i].id;
+                const correctAnsIdx = answersMap[qId];
+
+                // 前測結算
+                const pre = preTestRecords[i];
+                const preIsCorrect = (pre.userAnswer === correctAnsIdx);
+                if (preIsCorrect) preCorrectCount++;
+                preTotalTime += pre.time;
+
+                // 後測結算
+                const post = postTestRecords[i];
+                const postIsCorrect = (post.userAnswer === correctAnsIdx);
+                if (postIsCorrect) postCorrectCount++;
+                postTotalTime += post.time;
+
+                tableHTML += `
+                    <tr>
+                        <td>Q${i+1}</td>
+                        <td class="${preIsCorrect ? 'correct' : 'wrong'}">${preIsCorrect ? '✔ 答對' : '✘ 錯誤'}</td>
+                        <td>${pre.time.toFixed(1)} 秒</td>
+                        <td class="${postIsCorrect ? 'correct' : 'wrong'}">${postIsCorrect ? '✔ 答對' : '✘ 錯誤'}</td>
+                        <td>${post.time.toFixed(1)} 秒</td>
+                    </tr>
+                `;
+            }
+            tableHTML += `</tbody></table></div>`;
+
+            // 總結區塊 HTML
+            const statsHTML = `
+            <div class="summary-stats">
+                <div class="stat-box">
+                    <h4>憑經驗 (前測) 答對</h4>
+                    <span>${preCorrectCount} / ${questions.length}</span>
+                </div>
+                <div class="stat-box">
+                    <h4>前測總耗時</h4>
+                    <span>${preTotalTime.toFixed(1)} 秒</span>
+                </div>
+            </div>
+            <div class="summary-stats" style="background:#ecfdf5; border-color:#a7f3d0;">
+                <div class="stat-box">
+                    <h4>用工具 (後測) 答對</h4>
+                    <span style="color:var(--success);">${postCorrectCount} / ${questions.length}</span>
+                </div>
+                <div class="stat-box">
+                    <h4>後測總耗時</h4>
+                    <span style="color:var(--success);">${postTotalTime.toFixed(1)} 秒</span>
+                </div>
+            </div>
+            `;
+
+            reportContainer.innerHTML = statsHTML + tableHTML;
+
+        } catch (e) {
+            reportContainer.innerHTML = '<p style="color:red; font-weight:bold;">報表載入失敗，但別擔心，您的研究數據已成功上傳！</p>';
         }
     }
 </script>

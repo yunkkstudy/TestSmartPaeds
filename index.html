@@ -114,9 +114,13 @@
 
 <script>
 // ---------------------------------------------------------
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbz5pAlJtSjEw2CMnIvjKzThymyHZOmcOOrJOqitxCQmulL0pEQOp6JBCjgOaqiN8w/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwb7hjKy7idb-jzBDRKbsD694DdTARktM-eleablt0iJSIcU2KvFd05AzXPo2xoXw/exec"; 
     // ---------------------------------------------------------
 
+    let rawQuestionsPre = [], groupedQuestionsPre = [];
+    let rawQuestionsPost = [], groupedQuestionsPost = [];
+    
+    // 根據當前階段動態切換的指標
     let rawQuestions = [];
     let groupedQuestions = []; 
     let currentGroupIdx = 0;
@@ -130,23 +134,33 @@
     let questionStartTime = 0;
     let timerInterval;
 
+    // 將題目陣列整理成題組的共用函式
+    function groupifyQuestions(rawArray) {
+        let currentGroupName = null;
+        let currentGroup = null;
+        let result = [];
+        rawArray.forEach(q => {
+            if (q.group !== currentGroupName) {
+                currentGroupName = q.group;
+                currentGroup = { groupName: q.group, gText: q.gText, items: [] };
+                result.push(currentGroup);
+            }
+            currentGroup.items.push(q);
+        });
+        return result;
+    }
+
     window.onload = async () => {
         try {
             const response = await fetch(`${GAS_URL}?action=getQuestions`);
             const data = await response.json();
-            rawQuestions = data.questions;
             
-            let currentGroupName = null;
-            let currentGroup = null;
+            // 🌟 核心升級：同時接收前測與後測的題目，並分別打包
+            rawQuestionsPre = data.questionsPre;
+            groupedQuestionsPre = groupifyQuestions(rawQuestionsPre);
             
-            rawQuestions.forEach(q => {
-                if (q.group !== currentGroupName) {
-                    currentGroupName = q.group;
-                    currentGroup = { groupName: q.group, gText: q.gText, items: [] };
-                    groupedQuestions.push(currentGroup);
-                }
-                currentGroup.items.push(q);
-            });
+            rawQuestionsPost = data.questionsPost;
+            groupedQuestionsPost = groupifyQuestions(rawQuestionsPost);
 
             document.getElementById('quiz-title').textContent = data.title;
             document.getElementById('loading').classList.add('hidden');
@@ -194,8 +208,17 @@
 
             userInfo = { name: uName, job: uJob, years: uYears, workplace: workplaceVal, ref: refArray.join(', ') };
             document.getElementById('login-screen').classList.add('hidden');
+            
+            // 🌟 指派前測題庫
+            rawQuestions = rawQuestionsPre;
+            groupedQuestions = groupedQuestionsPre;
+            
         } else if (phase === '後測') {
             document.getElementById('tool-screen').classList.add('hidden');
+            
+            // 🌟 指派後測題庫
+            rawQuestions = rawQuestionsPost;
+            groupedQuestions = groupedQuestionsPost;
         }
 
         currentPhase = phase;
@@ -224,7 +247,7 @@
         
         groupData.items.forEach((q, index) => {
             html += `<div class="question-block">
-                        <h4> ${index + 1}. ${q.text}</h4>`;
+                        <h4> ${index + 1}：${q.text}</h4>`;
             
             const options = q.type === 'tf' ? ['合理', '不合理'] : q.options;
             options.forEach((opt, optIdx) => {
@@ -280,7 +303,6 @@
         }
 
         clearInterval(timerInterval);
-        // 🌟 修正：直接記錄整個題組的總耗時，不再做平均除法
         const groupTimeSpent = parseFloat(((Date.now() - questionStartTime) / 1000).toFixed(2));
 
         groupAnswers.forEach(ans => {
@@ -315,7 +337,10 @@
         try {
             const res = await fetch(`${GAS_URL}?action=getAnswers`);
             const data = await res.json();
-            const answersMap = data.answers;
+            
+            // 🌟 兩套獨立的解答表
+            const answersPreMap = data.answersPre;
+            const answersPostMap = data.answersPost;
 
             let preCorrectCount = 0, postCorrectCount = 0;
             let preTotalTime = 0, postTotalTime = 0;
@@ -329,38 +354,44 @@
                     <tbody>
             `;
 
-            // 🌟 修正：改以「題組」為單位來產生報表，並使用 rowspan 合併時間儲存格
-            for (let g = 0; g < groupedQuestions.length; g++) {
-                const group = groupedQuestions[g];
-                const groupItemCount = group.items.length;
-                const firstQId = group.items[0].id; // 抓取該題組的第一個子題 ID 作為時間基準
+            // 🌟 報表對接邏輯：假設前測和後測的「題組數量」與「結構」是對稱的
+            // 我們利用 index 來平行對照前後測的表現
+            for (let g = 0; g < groupedQuestionsPre.length; g++) {
+                const groupPre = groupedQuestionsPre[g];
+                const groupPost = groupedQuestionsPost[g]; // 抓取對應的後測題組
+                
+                const groupItemCount = groupPre.items.length;
+                
+                const firstQIdPre = groupPre.items[0].id; 
+                const firstQIdPost = groupPost ? groupPost.items[0].id : null;
 
-                const preFirst = preTestRecords.find(r => r.id === firstQId);
-                const postFirst = postTestRecords.find(r => r.id === firstQId);
+                const preFirst = preTestRecords.find(r => r.id === firstQIdPre);
+                const postFirst = postTestRecords.find(r => r.id === firstQIdPost);
 
                 const preGTime = preFirst ? preFirst.time : 0;
                 const postGTime = postFirst ? postFirst.time : 0;
 
-                // 每個題組的時間只加總一次，避免重複計算
                 preTotalTime += preGTime;
                 postTotalTime += postGTime;
 
                 for (let i = 0; i < groupItemCount; i++) {
-                    const qId = group.items[i].id;
-                    const correctAnsIdx = answersMap[qId];
+                    const qIdPre = groupPre.items[i].id;
+                    const qIdPost = groupPost ? groupPost.items[i].id : null;
+                    
+                    const correctAnsIdxPre = answersPreMap[qIdPre];
+                    const correctAnsIdxPost = qIdPost ? answersPostMap[qIdPost] : null;
 
-                    const pre = preTestRecords.find(r => r.id === qId);
-                    const preIsCorrect = (pre && Number(pre.userAnswer) === correctAnsIdx);
+                    const pre = preTestRecords.find(r => r.id === qIdPre);
+                    const preIsCorrect = (pre && Number(pre.userAnswer) === correctAnsIdxPre);
                     if (preIsCorrect) preCorrectCount++;
 
-                    const post = postTestRecords.find(r => r.id === qId);
-                    const postIsCorrect = (post && Number(post.userAnswer) === correctAnsIdx);
+                    const post = postTestRecords.find(r => r.id === qIdPost);
+                    const postIsCorrect = (post && Number(post.userAnswer) === correctAnsIdxPost);
                     if (postIsCorrect) postCorrectCount++;
 
-                    tableHTML += `<tr><td>Q${qId}</td>`;
+                    tableHTML += `<tr><td>Q${i+1}</td>`;
                     tableHTML += `<td class="${preIsCorrect ? 'correct' : 'wrong'}">${preIsCorrect ? '✔ 答對' : '✘ 錯誤'}</td>`;
                     
-                    // 若是該題組的第一個子題，則渲染帶有 rowspan 的時間儲存格
                     if (i === 0) {
                         tableHTML += `<td rowspan="${groupItemCount}" style="vertical-align: middle; font-weight: bold; background: #f8fafc;">${preGTime.toFixed(1)} 秒</td>`;
                     }
@@ -377,11 +408,11 @@
 
             const statsHTML = `
             <div class="summary-stats">
-                <div class="stat-box"><h4>大腦運算 (前測) 答對</h4><span>${preCorrectCount} / ${rawQuestions.length}</span></div>
+                <div class="stat-box"><h4>大腦運算 (前測) 答對</h4><span>${preCorrectCount} / ${rawQuestionsPre.length}</span></div>
                 <div class="stat-box"><h4>前測總耗時</h4><span>${preTotalTime.toFixed(1)} 秒</span></div>
             </div>
             <div class="summary-stats" style="background:#ecfdf5; border-color:#a7f3d0;">
-                <div class="stat-box"><h4>計算器 (後測) 答對</h4><span style="color:var(--success);">${postCorrectCount} / ${rawQuestions.length}</span></div>
+                <div class="stat-box"><h4>計算器 (後測) 答對</h4><span style="color:var(--success);">${postCorrectCount} / ${rawQuestionsPost.length}</span></div>
                 <div class="stat-box"><h4>後測總耗時</h4><span style="color:var(--success);">${postTotalTime.toFixed(1)} 秒</span></div>
             </div>
             `;

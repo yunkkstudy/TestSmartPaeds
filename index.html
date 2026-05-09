@@ -7,7 +7,6 @@
     <style>
         :root { --primary: #0284c7; --success: #10b981; --warning: #f59e0b; --bg: #f8fafc; --text: #1e293b; }
         body { font-family: system-ui; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: var(--text); padding: 20px 0; }
-        /* 卡片加寬一點點以容納報表 */
         .card { background: white; padding: 2rem; border-radius: 1rem; width: 90%; max-width: 750px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
         .hidden { display: none !important; }
         
@@ -20,22 +19,23 @@
         .checkbox-group label { font-weight: normal; font-size: 1rem; display: flex; align-items: center; cursor: pointer; margin-bottom: 0; }
         .checkbox-group input[type="checkbox"] { margin-right: 8px; width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary); }
 
-        .btn { background: var(--primary); color: white; border: none; padding: 14px 24px; border-radius: 0.5rem; cursor: pointer; font-size: 1.1rem; width: 100%; margin-top: 15px; font-weight: bold; transition: 0.2s; }
+        .btn { background: var(--primary); color: white; border: none; padding: 14px 24px; border-radius: 0.5rem; cursor: pointer; font-size: 1.1rem; width: 100%; margin-top: 25px; font-weight: bold; transition: 0.2s; }
         .btn:hover { background: #0369a1; }
         .btn-success { background: var(--success); }
         .btn-success:hover { background: #059669; }
-        
-        .option-group { display: grid; gap: 12px; margin-top: 20px; }
-        .option-btn { padding: 16px; border: 2px solid #e2e8f0; border-radius: 0.5rem; background: white; cursor: pointer; transition: 0.2s; text-align: left; font-size: 1rem; }
-        .option-btn:hover { border-color: var(--primary); background: #f0f9ff; }
-        
-        #question-text { text-align: left; line-height: 1.6; font-size: 1.1rem; background: #f1f5f9; padding: 18px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--primary); }
         
         .step-indicator { font-size: 0.9rem; color: #64748b; font-weight: bold; letter-spacing: 1px; margin-bottom: 1rem; text-transform: uppercase; }
         .alert-box { background: #fffbeb; color: #b45309; padding: 12px; border-radius: 8px; border: 1px solid #fde68a; margin-bottom: 20px; font-weight: bold; }
         .tool-box { background: #f0fdf4; border: 2px dashed var(--success); padding: 20px; border-radius: 12px; margin: 20px 0; }
 
-        /* 報表專屬 CSS */
+        /* 題組專屬排版 */
+        .g-text-box { background: #e0f2fe; color: #0369a1; padding: 15px; border-radius: 8px; font-size: 1.05rem; text-align: left; font-weight: bold; margin-bottom: 20px; border-left: 5px solid var(--primary); }
+        .question-block { text-align: left; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #e2e8f0; }
+        .question-block h4 { margin: 0 0 12px 0; color: #1e293b; line-height: 1.5; font-size: 1.1rem; }
+        .radio-option { display: block; margin-bottom: 10px; cursor: pointer; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; transition: 0.2s; }
+        .radio-option:hover { background: #f8fafc; border-color: #cbd5e1; }
+        .radio-option input[type="radio"] { margin-right: 10px; accent-color: var(--primary); transform: scale(1.2); }
+
         .summary-stats { display: flex; justify-content: space-around; margin: 20px 0; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
         .stat-box h4 { margin: 0 0 5px 0; color: #64748b; font-size: 0.95rem;}
         .stat-box span { font-size: 1.3rem; font-weight: bold; color: var(--primary); }
@@ -49,14 +49,13 @@
 <body>
 
 <div class="card">
-    <!-- Step 1: 基本資料 -->
     <div id="login-screen">
         <div class="step-indicator">Step 1 / 4：基本資料</div>
         <h2 id="quiz-title">測驗載入中...</h2>
         <div id="loading" style="color: var(--primary); font-weight: bold;">正在連線至雲端資料庫...</div>
         
         <div id="login-form" class="hidden">
-            <div class="alert-box">💡 測驗提示：本次測驗分為「前測」與「後測」，請先模擬您目前的真實工作場域進行前測！</div>
+            <div class="alert-box">💡 本測驗將以「題組」形式進行，請先模擬您的真實工作場域進行前測！</div>
             
             <div class="form-group"><label>姓名 / 暱稱：</label><input type="text" id="u-name" placeholder="請輸入姓名或暱稱"></div>
             <div class="form-group"><label>職業：</label><input type="text" id="u-job" placeholder="例如：醫師、藥師、護理師"></div>
@@ -83,25 +82,24 @@
         </div>
     </div>
 
-    <!-- Step 2 & 4: 測驗畫面 -->
+    <!-- Step 2 & 4: 測驗畫面 (題組模式) -->
     <div id="quiz-screen" class="hidden">
         <div class="step-indicator" id="progress">測驗進度</div>
-        <div style="font-size: 0.9rem; color: #ef4444; margin-bottom: 1rem; font-weight: bold;">當前題目耗時: <span id="current-timer">0.0</span> 秒</div>
-        <div id="question-text">載入題目中...</div>
-        <div id="options-container" class="option-group"></div>
+        <div style="font-size: 0.9rem; color: #ef4444; margin-bottom: 1rem; font-weight: bold;">本題組計時中: <span id="current-timer">0.0</span> 秒</div>
+        
+        <!-- 動態渲染題組內容的容器 -->
+        <div id="group-container"></div>
     </div>
 
     <!-- Step 3: 中場派發工具 -->
     <div id="tool-screen" class="hidden">
         <div class="step-indicator">Step 3 / 4：工具輔助</div>
         <h2 style="color: var(--primary);">前測完成！</h2>
-        
         <div class="tool-box">
             <h3 style="margin-top: 0; color: var(--success);">兒科藥品劑量計算器</h3>
-            <p style="font-size: 0.95rem;">接下來請使用此計算器來作答相同的題目！</p>
+            <p style="font-size: 0.95rem;">接下來請使用此計算器來作答相同的題組，體驗速度與精準度的升級！</p>
             <a href="https://yunkkstudy.github.io/SmartPaeds/" target="_blank" class="btn btn-success" style="text-decoration: none; display: inline-block; width: auto; padding: 12px 30px;">點此開啟計算器</a>
         </div>
-        
         <button class="btn" onclick="startTestPhase('後測')" style="margin-top: 10px;">我已開啟計算器，開始後測</button>
     </div>
 
@@ -109,26 +107,26 @@
     <div id="result-screen" class="hidden">
         <div class="step-indicator">Step 4 / 4：完美結束！</div>
         <h2 style="color: var(--success);">🎉 實戰表現報告</h2>
-        <p style="color: #64748b; margin-bottom: 20px;">感謝您參與本次測驗，以下是您使用計算器前後的具體差異：</p>
-        
-        <!-- 動態生成的報表區塊 -->
+        <p style="color: #64748b; margin-bottom: 20px;">感謝您參與本次研究，以下是您使用計算器前後的具體差異：</p>
         <div id="report-container"></div>
-        
     </div>
 </div>
 
 <script>
-    // ---------------------------------------------------------
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyimURTxSPBzml-wThFih6ljlBtoAxAjh3ygYBqti24XbkHx8rGFRMeQ1qJ6nIJnA/exec"; 
+// ---------------------------------------------------------
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz5pAlJtSjEw2CMnIvjKzThymyHZOmcOOrJOqitxCQmulL0pEQOp6JBCjgOaqiN8w/exec"; 
     // ---------------------------------------------------------
 
-    let questions = [];
-    let preTestRecords = [];  // 儲存前測紀錄
-    let postTestRecords = []; // 儲存後測紀錄
+    let rawQuestions = [];
+    let groupedQuestions = []; 
+    let currentGroupIdx = 0;
+    
+    let preTestRecords = [];  
+    let postTestRecords = []; 
     let records = [];
     let userInfo = {};
     let currentPhase = '前測';
-    let currentIdx = 0;
+    
     let questionStartTime = 0;
     let timerInterval;
 
@@ -136,7 +134,20 @@
         try {
             const response = await fetch(`${GAS_URL}?action=getQuestions`);
             const data = await response.json();
-            questions = data.questions;
+            rawQuestions = data.questions;
+            
+            let currentGroupName = null;
+            let currentGroup = null;
+            
+            rawQuestions.forEach(q => {
+                if (q.group !== currentGroupName) {
+                    currentGroupName = q.group;
+                    currentGroup = { groupName: q.group, gText: q.gText, items: [] };
+                    groupedQuestions.push(currentGroup);
+                }
+                currentGroup.items.push(q);
+            });
+
             document.getElementById('quiz-title').textContent = data.title;
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('login-form').classList.remove('hidden');
@@ -150,7 +161,6 @@
         const inp = document.getElementById(inputId);
         if (sel.value === '其他') { inp.classList.remove('hidden'); inp.focus(); } else { inp.classList.add('hidden'); inp.value = ''; }
     }
-
     function toggleCheckboxOther(checkboxId, inputId) {
         const cb = document.getElementById(checkboxId);
         const inp = document.getElementById(inputId);
@@ -179,7 +189,7 @@
             let uYears = document.getElementById('u-years').value.trim();
 
             if (!uName || !uJob || !uYears || !workplaceVal || refArray.length === 0 || (isOtherRefChecked && !otherRefText)) {
-                return alert("請完整填寫基本資料喔！\n（若選擇「其他」，請記得填寫具體內容，且參考資料至少需勾選一項）");
+                return alert("請完整填寫基本資料喔！");
             }
 
             userInfo = { name: uName, job: uJob, years: uYears, workplace: workplaceVal, ref: refArray.join(', ') };
@@ -189,33 +199,46 @@
         }
 
         currentPhase = phase;
-        currentIdx = 0;
+        currentGroupIdx = 0;
         records = []; 
         document.getElementById('quiz-screen').classList.remove('hidden');
-        showQuestion();
+        showGroup();
     }
 
-    function showQuestion() {
-        if (currentIdx >= questions.length) { finishTestPhase(); return; }
+    function showGroup() {
+        if (currentGroupIdx >= groupedQuestions.length) { 
+            finishTestPhase(); 
+            return; 
+        }
 
         const stepNum = currentPhase === '前測' ? 'Step 2' : 'Step 4';
-        document.getElementById('progress').textContent = `${stepNum} / 4：${currentPhase} (${currentIdx + 1} / ${questions.length})`;
+        document.getElementById('progress').textContent = `${stepNum} / 4：${currentPhase} - 題組 (${currentGroupIdx + 1} / ${groupedQuestions.length})`;
         
-        const q = questions[currentIdx];
-        document.getElementById('question-text').textContent = q.text;
+        const groupData = groupedQuestions[currentGroupIdx];
+        const container = document.getElementById('group-container');
         
-        const container = document.getElementById('options-container');
-        container.innerHTML = '';
-
-        const options = q.type === 'tf' ? ['合理', '不合理'] : q.options;
-        options.forEach((opt, idx) => {
-            if (!opt && q.type === 'mc') return;
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.textContent = opt;
-            btn.onclick = () => handleAnswer(idx, opt);
-            container.appendChild(btn);
+        let html = ``;
+        if (groupData.gText) {
+            html += `<div class="g-text-box">🗂️ 【病患背景】<br>${groupData.gText}</div>`;
+        }
+        
+        groupData.items.forEach((q, index) => {
+            html += `<div class="question-block">
+                        <h4>子題 ${index + 1}：${q.text}</h4>`;
+            
+            const options = q.type === 'tf' ? ['合理', '不合理'] : q.options;
+            options.forEach((opt, optIdx) => {
+                if (!opt && q.type === 'mc') return;
+                html += `<label class="radio-option">
+                            <input type="radio" name="q_${q.id}" value="${optIdx}" data-display="${opt}">
+                            ${opt}
+                         </label>`;
+            });
+            html += `</div>`;
         });
+        
+        html += `<button class="btn" onclick="submitGroup()">提交本題組</button>`;
+        container.innerHTML = html;
 
         questionStartTime = Date.now();
         startTimer();
@@ -229,46 +252,67 @@
         }, 100);
     }
 
-    function handleAnswer(userAnswerIndex, displayValue) {
+    function submitGroup() {
+        const groupData = groupedQuestions[currentGroupIdx];
+        let groupAnswers = [];
+        let allAnswered = true;
+
+        for (let i = 0; i < groupData.items.length; i++) {
+            const q = groupData.items[i];
+            const selectedOption = document.querySelector(`input[name="q_${q.id}"]:checked`);
+            
+            if (!selectedOption) {
+                allAnswered = false;
+                break;
+            }
+            
+            groupAnswers.push({
+                id: q.id,
+                userAnswer: selectedOption.value,
+                answerDisplay: selectedOption.getAttribute('data-display'),
+                questionText: q.text,
+                type: q.type
+            });
+        }
+
+        if (!allAnswered) {
+            return alert("請確認本題組內的所有子題都已作答！");
+        }
+
         clearInterval(timerInterval);
-        const timeSpent = ((Date.now() - questionStartTime) / 1000).toFixed(2);
-        
-        records.push({
-            id: questions[currentIdx].id,
-            userAnswer: userAnswerIndex,
-            time: parseFloat(timeSpent),
-            // 保留給背景上傳的資訊
-            questionText: questions[currentIdx].text, type: questions[currentIdx].type, answerDisplay: displayValue 
+        // 🌟 修正：直接記錄整個題組的總耗時，不再做平均除法
+        const groupTimeSpent = parseFloat(((Date.now() - questionStartTime) / 1000).toFixed(2));
+
+        groupAnswers.forEach(ans => {
+            ans.time = groupTimeSpent; 
+            records.push(ans);
         });
 
-        currentIdx++;
-        showQuestion();
+        currentGroupIdx++;
+        showGroup();
     }
 
     async function finishTestPhase() {
         document.getElementById('quiz-screen').classList.add('hidden');
         
-        // 背景上傳成績給 Google Sheet
         const payload = { action: 'saveResponse', userInfo: userInfo, phase: currentPhase, records: records, ts: Date.now() };
         fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }).catch(e => console.error(e));
 
         if (currentPhase === '前測') {
-            preTestRecords = [...records]; // 備份前測資料
+            preTestRecords = [...records]; 
             document.getElementById('tool-screen').classList.remove('hidden');
         } else {
-            postTestRecords = [...records]; // 備份後測資料
+            postTestRecords = [...records]; 
             document.getElementById('result-screen').classList.remove('hidden');
-            generateReport(); // 啟動報表生成
+            generateReport(); 
         }
     }
 
-    // 🌟 新增：產生最終對比報表
     async function generateReport() {
         const reportContainer = document.getElementById('report-container');
-        reportContainer.innerHTML = '<h3 style="color:var(--primary);">正在比對大腦與系統的算力差異...</h3>';
+        reportContainer.innerHTML = '<h3 style="color:var(--primary);">正在產生對比報告...</h3>';
 
         try {
-            // 向 GAS 索取正確答案對照表
             const res = await fetch(`${GAS_URL}?action=getAnswers`);
             const data = await res.json();
             const answersMap = data.answers;
@@ -280,66 +324,65 @@
             <div style="overflow-x: auto;">
                 <table class="result-table">
                     <thead>
-                        <tr>
-                            <th>題號</th>
-                            <th>前測結果</th>
-                            <th>前測耗時</th>
-                            <th>後測結果</th>
-                            <th>後測耗時</th>
-                        </tr>
+                        <tr><th>題號</th><th>前測結果</th><th>前測題組耗時</th><th>後測結果</th><th>後測題組耗時</th></tr>
                     </thead>
                     <tbody>
             `;
 
-            for (let i = 0; i < questions.length; i++) {
-                const qId = questions[i].id;
-                const correctAnsIdx = answersMap[qId];
+            // 🌟 修正：改以「題組」為單位來產生報表，並使用 rowspan 合併時間儲存格
+            for (let g = 0; g < groupedQuestions.length; g++) {
+                const group = groupedQuestions[g];
+                const groupItemCount = group.items.length;
+                const firstQId = group.items[0].id; // 抓取該題組的第一個子題 ID 作為時間基準
 
-                // 前測結算
-                const pre = preTestRecords[i];
-                const preIsCorrect = (pre.userAnswer === correctAnsIdx);
-                if (preIsCorrect) preCorrectCount++;
-                preTotalTime += pre.time;
+                const preFirst = preTestRecords.find(r => r.id === firstQId);
+                const postFirst = postTestRecords.find(r => r.id === firstQId);
 
-                // 後測結算
-                const post = postTestRecords[i];
-                const postIsCorrect = (post.userAnswer === correctAnsIdx);
-                if (postIsCorrect) postCorrectCount++;
-                postTotalTime += post.time;
+                const preGTime = preFirst ? preFirst.time : 0;
+                const postGTime = postFirst ? postFirst.time : 0;
 
-                tableHTML += `
-                    <tr>
-                        <td>Q${i+1}</td>
-                        <td class="${preIsCorrect ? 'correct' : 'wrong'}">${preIsCorrect ? '✔ 答對' : '✘ 錯誤'}</td>
-                        <td>${pre.time.toFixed(1)} 秒</td>
-                        <td class="${postIsCorrect ? 'correct' : 'wrong'}">${postIsCorrect ? '✔ 答對' : '✘ 錯誤'}</td>
-                        <td>${post.time.toFixed(1)} 秒</td>
-                    </tr>
-                `;
+                // 每個題組的時間只加總一次，避免重複計算
+                preTotalTime += preGTime;
+                postTotalTime += postGTime;
+
+                for (let i = 0; i < groupItemCount; i++) {
+                    const qId = group.items[i].id;
+                    const correctAnsIdx = answersMap[qId];
+
+                    const pre = preTestRecords.find(r => r.id === qId);
+                    const preIsCorrect = (pre && Number(pre.userAnswer) === correctAnsIdx);
+                    if (preIsCorrect) preCorrectCount++;
+
+                    const post = postTestRecords.find(r => r.id === qId);
+                    const postIsCorrect = (post && Number(post.userAnswer) === correctAnsIdx);
+                    if (postIsCorrect) postCorrectCount++;
+
+                    tableHTML += `<tr><td>Q${qId}</td>`;
+                    tableHTML += `<td class="${preIsCorrect ? 'correct' : 'wrong'}">${preIsCorrect ? '✔ 答對' : '✘ 錯誤'}</td>`;
+                    
+                    // 若是該題組的第一個子題，則渲染帶有 rowspan 的時間儲存格
+                    if (i === 0) {
+                        tableHTML += `<td rowspan="${groupItemCount}" style="vertical-align: middle; font-weight: bold; background: #f8fafc;">${preGTime.toFixed(1)} 秒</td>`;
+                    }
+
+                    tableHTML += `<td class="${postIsCorrect ? 'correct' : 'wrong'}">${postIsCorrect ? '✔ 答對' : '✘ 錯誤'}</td>`;
+
+                    if (i === 0) {
+                        tableHTML += `<td rowspan="${groupItemCount}" style="vertical-align: middle; font-weight: bold; background: #ecfdf5; color: var(--success);">${postGTime.toFixed(1)} 秒</td>`;
+                    }
+                    tableHTML += `</tr>`;
+                }
             }
             tableHTML += `</tbody></table></div>`;
 
-            // 總結區塊 HTML
             const statsHTML = `
             <div class="summary-stats">
-                <div class="stat-box">
-                    <h4>憑經驗 (前測) 答對</h4>
-                    <span>${preCorrectCount} / ${questions.length}</span>
-                </div>
-                <div class="stat-box">
-                    <h4>前測總耗時</h4>
-                    <span>${preTotalTime.toFixed(1)} 秒</span>
-                </div>
+                <div class="stat-box"><h4>大腦運算 (前測) 答對</h4><span>${preCorrectCount} / ${rawQuestions.length}</span></div>
+                <div class="stat-box"><h4>前測總耗時</h4><span>${preTotalTime.toFixed(1)} 秒</span></div>
             </div>
             <div class="summary-stats" style="background:#ecfdf5; border-color:#a7f3d0;">
-                <div class="stat-box">
-                    <h4>用工具 (後測) 答對</h4>
-                    <span style="color:var(--success);">${postCorrectCount} / ${questions.length}</span>
-                </div>
-                <div class="stat-box">
-                    <h4>後測總耗時</h4>
-                    <span style="color:var(--success);">${postTotalTime.toFixed(1)} 秒</span>
-                </div>
+                <div class="stat-box"><h4>計算器 (後測) 答對</h4><span style="color:var(--success);">${postCorrectCount} / ${rawQuestions.length}</span></div>
+                <div class="stat-box"><h4>後測總耗時</h4><span style="color:var(--success);">${postTotalTime.toFixed(1)} 秒</span></div>
             </div>
             `;
 

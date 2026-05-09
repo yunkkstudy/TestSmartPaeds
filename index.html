@@ -55,7 +55,7 @@
         <div id="loading" style="color: var(--primary); font-weight: bold;">正在連線至雲端資料庫...</div>
         
         <div id="login-form" class="hidden">
-            <div class="alert-box">💡 本測驗將以「題組」形式進行，請先模擬您的真實工作場域進行前測！</div>
+            <div class="alert-box">💡 本次測驗分為前測與後側，請模擬您平常的工作場域進行前側！</div>
             
             <div class="form-group"><label>姓名 / 暱稱：</label><input type="text" id="u-name" placeholder="請輸入姓名或暱稱"></div>
             <div class="form-group"><label>職業：</label><input type="text" id="u-job" placeholder="例如：醫師、藥師、護理師"></div>
@@ -97,7 +97,7 @@
         <h2 style="color: var(--primary);">前測完成！</h2>
         <div class="tool-box">
             <h3 style="margin-top: 0; color: var(--success);">兒科藥品劑量計算器</h3>
-            <p style="font-size: 0.95rem;">接下來請使用此計算器來作答相同的題組，體驗速度與精準度的升級！</p>
+            <p style="font-size: 0.95rem;">接下來請使用此計算器來作答！</p>
             <a href="https://yunkkstudy.github.io/SmartPaeds/" target="_blank" class="btn btn-success" style="text-decoration: none; display: inline-block; width: auto; padding: 12px 30px;">點此開啟計算器</a>
         </div>
         <button class="btn" onclick="startTestPhase('後測')" style="margin-top: 10px;">我已開啟計算器，開始後測</button>
@@ -107,7 +107,7 @@
     <div id="result-screen" class="hidden">
         <div class="step-indicator">Step 4 / 4：完美結束！</div>
         <h2 style="color: var(--success);">🎉 實戰表現報告</h2>
-        <p style="color: #64748b; margin-bottom: 20px;">感謝您參與本次研究，以下是您使用計算器前後的具體差異：</p>
+        <p style="color: #64748b; margin-bottom: 20px;">感謝您參與本次測驗，以下是您使用計算器前後的具體差異：</p>
         <div id="report-container"></div>
     </div>
 </div>

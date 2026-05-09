@@ -224,7 +224,7 @@
         
         groupData.items.forEach((q, index) => {
             html += `<div class="question-block">
-                        <h4>子題 ${index + 1}：${q.text}</h4>`;
+                        <h4> ${index + 1}：${q.text}</h4>`;
             
             const options = q.type === 'tf' ? ['合理', '不合理'] : q.options;
             options.forEach((opt, optIdx) => {

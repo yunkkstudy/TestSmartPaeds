@@ -28,7 +28,6 @@
         .alert-box { background: #fffbeb; color: #b45309; padding: 12px; border-radius: 8px; border: 1px solid #fde68a; margin-bottom: 20px; font-weight: bold; }
         .tool-box { background: #f0fdf4; border: 2px dashed var(--success); padding: 20px; border-radius: 12px; margin: 20px 0; }
 
-        /* 題組專屬排版 */
         .g-text-box { background: #e0f2fe; color: #0369a1; padding: 15px; border-radius: 8px; font-size: 1.05rem; text-align: left; font-weight: bold; margin-bottom: 20px; border-left: 5px solid var(--primary); }
         .question-block { text-align: left; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #e2e8f0; }
         .question-block h4 { margin: 0 0 12px 0; color: #1e293b; line-height: 1.5; font-size: 1.1rem; }
@@ -58,15 +57,46 @@
             <div class="alert-box">💡 本次測驗分為前測與後側，請模擬您平常的工作場域進行前側！</div>
             
             <div class="form-group"><label>姓名 / 暱稱：</label><input type="text" id="u-name" placeholder="請輸入姓名或暱稱"></div>
-            <div class="form-group"><label>職業：</label><input type="text" id="u-job" placeholder="例如：醫師、藥師、護理師"></div>
+            
+            <!-- 職業改為編號選單 -->
+            <div class="form-group">
+                <label>職業：</label>
+                <select id="u-job" onchange="toggleSelectOther('u-job', 'u-job-other')">
+                    <option value="">請選擇...</option>
+                    <option value="1">醫師</option>
+                    <option value="2">藥師</option>
+                    <option value="3">護理師</option>
+                    <option value="4">其他</option>
+                </select>
+                <input type="text" id="u-job-other" class="hidden other-input" placeholder="請註明您的職業">
+            </div>
+
             <div class="form-group"><label>執業多久 (年)：</label><input type="number" id="u-years" placeholder="例如：3" min="0"></div>
+            
             <div class="form-group">
                 <label>目前執業場所：</label>
                 <select id="u-workplace" onchange="toggleSelectOther('u-workplace', 'u-workplace-other')">
-                    <option value="">請選擇...</option><option value="醫院">醫院</option><option value="診所">診所</option><option value="藥局">藥局</option><option value="其他">其他</option>
+                    <option value="">請選擇...</option>
+                    <option value="1">醫院</option>
+                    <option value="2">診所</option>
+                    <option value="3">藥局</option>
+                    <option value="4">其他</option>
                 </select>
                 <input type="text" id="u-workplace-other" class="hidden other-input" placeholder="請註明您的執業場所">
             </div>
+
+            <!-- 新增裝置選單 -->
+            <div class="form-group">
+                <label>使用裝置：</label>
+                <select id="u-device">
+                    <option value="">請選擇...</option>
+                    <option value="1">手機</option>
+                    <option value="2">平板</option>
+                    <option value="3">電腦</option>
+                    <option value="4">其他</option>
+                </select>
+            </div>
+
             <div class="form-group">
                 <label>遇到不確定的劑量，最常參考的資料 (可複選)：</label>
                 <div class="checkbox-group">
@@ -82,16 +112,14 @@
         </div>
     </div>
 
-    <!-- Step 2 & 4: 測驗畫面 (題組模式) -->
+    <!-- 測驗畫面 -->
     <div id="quiz-screen" class="hidden">
         <div class="step-indicator" id="progress">測驗進度</div>
         <div class="hidden" style="display: none; font-size: 0.9rem; color: #ef4444; margin-bottom: 1rem; font-weight: bold;">本題組計時中: <span id="current-timer">0.0</span> 秒</div>
-        
-        <!-- 動態渲染題組內容的容器 -->
         <div id="group-container"></div>
     </div>
 
-    <!-- Step 3: 中場派發工具 -->
+    <!-- 中場派發工具 -->
     <div id="tool-screen" class="hidden">
         <div class="step-indicator">Step 3 / 4：工具輔助</div>
         <h2 style="color: var(--primary);">前測完成！</h2>
@@ -103,7 +131,7 @@
         <button class="btn" onclick="startTestPhase('後測')" style="margin-top: 10px;">我已開啟計算器，開始後測</button>
     </div>
 
-    <!-- Step 5: 結算報表 -->
+    <!-- 結算報表 -->
     <div id="result-screen" class="hidden">
         <div class="step-indicator">Step 4 / 4：完美結束！</div>
         <h2 style="color: var(--success);">🎉 實戰表現報告</h2>
@@ -113,14 +141,14 @@
 </div>
 
 <script>
-// ---------------------------------------------------------
+    // ---------------------------------------------------------
+    // 🚨 請確認這裡是你最新的 Apps Script 網址 🚨
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwb7hjKy7idb-jzBDRKbsD694DdTARktM-eleablt0iJSIcU2KvFd05AzXPo2xoXw/exec"; 
     // ---------------------------------------------------------
 
     let rawQuestionsPre = [], groupedQuestionsPre = [];
     let rawQuestionsPost = [], groupedQuestionsPost = [];
     
-    // 根據當前階段動態切換的指標
     let rawQuestions = [];
     let groupedQuestions = []; 
     let currentGroupIdx = 0;
@@ -134,7 +162,6 @@
     let questionStartTime = 0;
     let timerInterval;
 
-    // 將題目陣列整理成題組的共用函式
     function groupifyQuestions(rawArray) {
         let currentGroupName = null;
         let currentGroup = null;
@@ -155,7 +182,6 @@
             const response = await fetch(`${GAS_URL}?action=getQuestions`);
             const data = await response.json();
             
-            // 🌟 核心升級：同時接收前測與後測的題目，並分別打包
             rawQuestionsPre = data.questionsPre;
             groupedQuestionsPre = groupifyQuestions(rawQuestionsPre);
             
@@ -173,7 +199,7 @@
     function toggleSelectOther(selectId, inputId) {
         const sel = document.getElementById(selectId);
         const inp = document.getElementById(inputId);
-        if (sel.value === '其他') { inp.classList.remove('hidden'); inp.focus(); } else { inp.classList.add('hidden'); inp.value = ''; }
+        if (sel.value === '4') { inp.classList.remove('hidden'); inp.focus(); } else { inp.classList.add('hidden'); inp.value = ''; }
     }
     function toggleCheckboxOther(checkboxId, inputId) {
         const cb = document.getElementById(checkboxId);
@@ -183,8 +209,9 @@
 
     function startTestPhase(phase) {
         if (phase === '前測') {
+            let uJob = document.getElementById('u-job').value;
             let workplaceVal = document.getElementById('u-workplace').value;
-            if (workplaceVal === '其他') workplaceVal = document.getElementById('u-workplace-other').value.trim();
+            let uDevice = document.getElementById('u-device').value;
 
             let refCheckedBoxes = document.querySelectorAll('input[name="u-ref"]:checked');
             let refArray = [];
@@ -199,24 +226,20 @@
             });
 
             let uName = document.getElementById('u-name').value.trim();
-            let uJob = document.getElementById('u-job').value.trim();
             let uYears = document.getElementById('u-years').value.trim();
 
-            if (!uName || !uJob || !uYears || !workplaceVal || refArray.length === 0 || (isOtherRefChecked && !otherRefText)) {
+            if (!uName || !uJob || !uYears || !workplaceVal || !uDevice || refArray.length === 0 || (isOtherRefChecked && !otherRefText)) {
                 return alert("請完整填寫基本資料喔！");
             }
 
-            userInfo = { name: uName, job: uJob, years: uYears, workplace: workplaceVal, ref: refArray.join(', ') };
+            userInfo = { name: uName, job: uJob, years: uYears, workplace: workplaceVal, device: uDevice, ref: refArray.join(', ') };
             document.getElementById('login-screen').classList.add('hidden');
             
-            // 🌟 指派前測題庫
             rawQuestions = rawQuestionsPre;
             groupedQuestions = groupedQuestionsPre;
             
         } else if (phase === '後測') {
             document.getElementById('tool-screen').classList.add('hidden');
-            
-            // 🌟 指派後測題庫
             rawQuestions = rawQuestionsPost;
             groupedQuestions = groupedQuestionsPost;
         }
@@ -317,15 +340,24 @@
     async function finishTestPhase() {
         document.getElementById('quiz-screen').classList.add('hidden');
         
-        const payload = { action: 'saveResponse', userInfo: userInfo, phase: currentPhase, records: records, ts: Date.now() };
-        fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }).catch(e => console.error(e));
-
+        // 🌟 改變邏輯：前測完先不送資料給後端，而是等到後測全部結束再打包一次送
         if (currentPhase === '前測') {
             preTestRecords = [...records]; 
             document.getElementById('tool-screen').classList.remove('hidden');
         } else {
             postTestRecords = [...records]; 
             document.getElementById('result-screen').classList.remove('hidden');
+            
+            // 打包成新的 final 格式
+            const payload = { 
+                action: 'saveFinalResponse', 
+                userInfo: userInfo, 
+                preTestRecords: preTestRecords,
+                postTestRecords: postTestRecords,
+                ts: Date.now() 
+            };
+            
+            fetch(GAS_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }).catch(e => console.error(e));
             generateReport(); 
         }
     }
@@ -338,7 +370,6 @@
             const res = await fetch(`${GAS_URL}?action=getAnswers`);
             const data = await res.json();
             
-            // 🌟 兩套獨立的解答表
             const answersPreMap = data.answersPre;
             const answersPostMap = data.answersPost;
 
@@ -354,11 +385,9 @@
                     <tbody>
             `;
 
-            // 🌟 報表對接邏輯：假設前測和後測的「題組數量」與「結構」是對稱的
-            // 我們利用 index 來平行對照前後測的表現
             for (let g = 0; g < groupedQuestionsPre.length; g++) {
                 const groupPre = groupedQuestionsPre[g];
-                const groupPost = groupedQuestionsPost[g]; // 抓取對應的後測題組
+                const groupPost = groupedQuestionsPost[g]; 
                 
                 const groupItemCount = groupPre.items.length;
                 

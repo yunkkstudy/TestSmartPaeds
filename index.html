@@ -125,10 +125,16 @@
         <h2 style="color: var(--primary);">前測完成！</h2>
         <div class="tool-box">
             <h3 style="margin-top: 0; color: var(--success);">兒科藥品劑量計算器</h3>
-            <p style="font-size: 0.95rem;">接下來請使用此計算器來作答！</p>
-            <a href="https://yunkkstudy.github.io/SmartPaeds/" target="_blank" class="btn btn-success" style="text-decoration: none; display: inline-block; width: auto; padding: 12px 30px;">點此開啟計算器</a>
+            <p style="font-size: 0.95rem;">請點擊下方按鈕，一鍵複製網址到瀏覽器使用！</p>
+            <button class="btn" style="background: #0f766e; width: 100%; padding: 12px; margin-bottom: 5px;" onclick="copyToClipboard()">
+                📋 點我複製計算器網址
+            </button>
+            <div id="copy-success-msg" style="color: var(--success); font-weight: bold; font-size: 0.9rem; display: none; margin-bottom: 10px;">
+                ✅ 網址已成功複製！請至瀏覽器貼上
+            </div>
+            
         </div>
-        <button class="btn" onclick="startTestPhase('後測')" style="margin-top: 10px;">我已開啟計算器，開始後測</button>
+        <button class="btn btn-success" onclick="startTestPhase('後測')" style="margin-top: 10px;">我已開啟計算器，開始後測</button>
     </div>
 
     <!-- 結算報表 -->
@@ -456,6 +462,25 @@
             reportContainer.innerHTML = '<p style="color:red; font-weight:bold;">報表載入失敗，但別擔心，您的研究數據已成功上傳！</p>';
         }
     }
+
+   function copyToClipboard() {
+        const toolUrl = "https://yunkkstudy.github.io/SmartPaeds/";
+        
+        // 使用現代瀏覽器的剪貼簿 API
+        navigator.clipboard.writeText(toolUrl).then(() => {
+            // 複製成功，顯示提示文字
+            const msg = document.getElementById('copy-success-msg');
+            msg.style.display = 'block';
+            
+            // 設定 2 秒後自動隱藏提示文字
+            setTimeout(() => {
+                msg.style.display = 'none';
+            }, 2000);
+        }).catch(err => {
+            // 萬一使用者的舊版瀏覽器不支援，提供防呆的傳統彈窗提示
+            alert("複製失敗，請手動複製此網址：\n" + toolUrl);
+        });
+    } 
 </script>
 
 </body>

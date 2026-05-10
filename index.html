@@ -252,6 +252,8 @@
     }
 
     function showGroup() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
         if (currentGroupIdx >= groupedQuestions.length) { 
             finishTestPhase(); 
             return; 

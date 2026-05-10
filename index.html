@@ -248,6 +248,7 @@
         currentGroupIdx = 0;
         records = []; 
         document.getElementById('quiz-screen').classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         showGroup();
     }
 
@@ -340,6 +341,7 @@
     }
 
     async function finishTestPhase() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         document.getElementById('quiz-screen').classList.add('hidden');
         
         // 🌟 改變邏輯：前測完先不送資料給後端，而是等到後測全部結束再打包一次送
